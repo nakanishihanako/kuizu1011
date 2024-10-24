@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>シンプルクイズ</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background-color: #f0f0f0;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      margin-top: 50px;
+      padding: 20px;
+      background-color: white;
+      max-width: 600px;
+      margin: 50px auto;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+    button {
+      display: block;
+      margin: 10px auto;
+      padding: 10px 20px;
+      border: none;
+      background-color: #4CAF50;
+      color: white;
+      cursor: pointer;
+      border-radius: 5px;
+      width: 80%;
+      max-width: 300px;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+    .progress-bar {
+      width: 100%;
+      background-color: #e0e0e0;
+      border-radius: 10px;
+      margin: 20px 0;
+    }
+    .progress {
+      height: 20px;
+      width: 0%;
+      background-color: #4CAF50;
+      border-radius: 10px;
+    }
+    .explanation, .result {
+      font-size: 18px;
+      margin-top: 20px;
+    }
+    @media (max-width: 600px) {
+      .container {
+        margin: 20px;
+        padding: 15px;
+      }
+      button {
+        width: 90%;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h1>シンプルクイズ</h1>
+  <div class="progress-bar">
+    <div class="progress" id="progress"></div>
+  </div>
+  <div id="quiz-container"></div>
+  <div class="explanation" id="explanation"></div>
+  <button id="next-btn" style="display:none;">次の問題へ</button>
+  <button id="end-btn" style="display:none;">終了</button>
+  <div class="result" id="result"></div>
+  <button id="share-btn" style="display:none;">スコアをシェアする</button>
+</div>
+
+<script>
+  const quiz1 = [
+    { question: "1+1は？", options: ["1", "2", "3", "4"], answer: 1, explanation: "1+1は2です。" },
+    { question: "富士山の高さは？", options: ["2776m", "3776m", "4776m", "5776m"], answer: 1, explanation: "富士山の標高は3776mです。" },
+    { question: "日本の首都は？", options: ["大阪", "京都", "東京", "福岡"], answer: 2, explanation: "日本の首都は東京です。" },
+  ];
+
+  const quiz2 = [
+    { question: "水は何度で凍る？", options: ["0°C", "10°C", "50°C", "100°C"], answer: 0, explanation: "水は0°Cで凍ります。" },
+    { question: "太陽は東から昇る？", options: ["はい", "いいえ", "場合による", "わからない"], answer: 0, explanation: "太陽は必ず東から昇ります。" },
+  ];
+
+  let selectedQuestions = [];
+  let currentQuestionIndex = 0;
+  let score = 0;
+
+  function getRandomQuestions(quizArray, n) {
+    return quizArray.sort(() => 0.5 - Math.random()).slice(0, n);
+  }
+
+  function displayQuestion(index) {
+    const quizContainer = document.getElementById("quiz-container");
+    const question = selectedQuestions[index];
+    quizContainer.innerHTML = `
+      <div>
+        <p>${question.question}</p>
+        ${question.options.map((option, i) => `
+          <label>
+            <input type="radio" name="question" value="${i}">
+            ${option}
+          </label>
+        `).join('')}
+      </div>
+      <button onclick="handleAnswer()">解答する</button>
+    `;
+    document.getElementById("explanation").innerHTML = "";
+    document.getElementById("next-btn").style.display = "none";
+    updateProgress();
+  }
+
+  function handleAnswer() {
+    const selectedOption = document.querySelector('input[name="question"]:checked');
+    if (!selectedOption) {
+      alert("選択肢を選んでください");
+      return;
+    }
+    const answer = parseInt(selectedOption.value);
+    const currentQuestion = selectedQuestions[currentQuestionIndex];
+
+    const explanationElement = document.getElementById("explanation");
+    if (answer === currentQuestion.answer) {
+      score++;
+      explanationElement.innerHTML = `<p>正解！ ${currentQuestion.explanation}</p>`;
+    } else {
+      explanationElement.innerHTML = `<p>不正解。 ${currentQuestion.explanation}</p>`;
+    }
+
+    document.getElementById("next-btn").style.display = "block";
+    document.getElementById("end-btn").style.display = "block";
+  }
+
+  function handleNextQuestion() {
+    currentQuestionIndex++;
+    if (currentQuestionIndex < selectedQuestions.length) {
+      displayQuestion(currentQuestionIndex);
+    } else {
+      showResult();
+    }
+  }
+
+  function showResult() {
+    const totalScore = Math.round((score / selectedQuestions.length) * 100);
+    document.getElementById("result").innerText = `あなたのスコア: ${totalScore}点`;
+    document.getElementById("next-btn").style.display = "none";
+    document.getElementById("end-btn").style.display = "none";
+    document.getElementById("share-btn").style.display = "block";
+  }
+
+  function updateProgress() {
+    const progress = document.getElementById("progress");
+    const progressPercent = ((currentQuestionIndex + 1) / selectedQuestions.length) * 100;
+    progress.style.width = `${progressPercent}%`;
+  }
+
+  function endQuiz() {
+    showResult();
+  }
+
+  document.getElementById("next-btn").addEventListener("click", handleNextQuestion);
+  document.getElementById("end-btn").addEventListener("click", endQuiz);
+
+  window.onload = () => {
+    selectedQuestions = [
+      ...getRandomQuestions(quiz1, 3),
+      ...getRandomQuestions(quiz2, 2),
+    ];
+    displayQuestion(currentQuestionIndex);
+  };
+</script>
+
+</body>
+</html>
